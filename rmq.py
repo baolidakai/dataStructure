@@ -4,6 +4,7 @@ Range Minimum Queries implementations
 import math
 import random
 import time
+import timeit
 import matplotlib.pyplot as plt
 import numpy as np
 # First implementation:
@@ -290,81 +291,80 @@ def checkCorrectness(n = 100, m = 100, minNum = 0, maxNum = 20):
 				return False
 	return True
 
-#def visualizeRunTime(maxN = 10000, minNum = 0, maxNum = 20):
-if True:
-	maxN = 1000
-	numExperiment = 10
-	minNum = 0
-	maxNum = 20
-	'''
-	Visualize the amortized preprocessing time and query time
-	'''
-	Ns = list(map(lambda k: 2 ** k, range(int(math.log2(maxN)))))
-	npPreprocessTimes = np.zeros_like(Ns)
-	fpPreprocessTimes = np.zeros_like(Ns)
-	bdPreprocessTimes = np.zeros_like(Ns)
-	stPreprocessTimes = np.zeros_like(Ns)
-	hoPreprocessTimes = np.zeros_like(Ns)
-	htPreprocessTimes = np.zeros_like(Ns)
-	hhPreprocessTimes = np.zeros_like(Ns)
-	npQueryTimes = np.zeros_like(Ns)
-	fpQueryTimes = np.zeros_like(Ns)
-	bdQueryTimes = np.zeros_like(Ns)
-	stQueryTimes = np.zeros_like(Ns)
-	hoQueryTimes = np.zeros_like(Ns)
-	htQueryTimes = np.zeros_like(Ns)
-	hhQueryTimes = np.zeros_like(Ns)
-	for i, N in enumerate(Ns):
-		arr = [random.randint(minNum, maxNum) for _ in range(N)]
-		# Compute the runtimes for no preprocessing
-		timeStart = time.time()
-		npObject = noPreprocessing(arr)
-		npPreprocessTimes[i] = (time.time() - timeStart) * 1000000
-		timeStart = time.time(); fpObject = fullPreprocessing(arr); fpPreprocessTimes[i] = (time.time() - timeStart) * 1000000
-		timeStart = time.time(); bdObject = blockDecomposition(arr); bdPreprocessTimes[i] = (time.time() - timeStart) * 1000000
-		timeStart = time.time(); stObject = sparseTable(arr); stPreprocessTimes[i] = (time.time() - timeStart) * 1000000
-		timeStart = time.time(); hoObject = hybridOne(arr); hoPreprocessTimes[i] = (time.time() - timeStart) * 1000000
-		timeStart = time.time(); htObject = hybridTwo(arr); htPreprocessTimes[i] = (time.time() - timeStart) * 1000000
-		timeStart = time.time(); hhObject = hybridThree(arr); hhPreprocessTimes[i] = (time.time() - timeStart) * 1000000
-		for experiment in range(numExperiment):
-			left = random.randint(0, N - 1)
-			right = random.randint(0, N - 1)
-			left, right = min(left, right), max(left, right)
-			timeStart = time.time(); _ = npObject.minimumInRange(left, right); npQueryTimes[i] += (time.time() - timeStart) * 1000000
-			timeStart = time.time(); _ = fpObject.minimumInRange(left, right); fpQueryTimes[i] += (time.time() - timeStart) * 1000000
-			timeStart = time.time(); _ = bdObject.minimumInRange(left, right); bdQueryTimes[i] += (time.time() - timeStart) * 1000000
-			timeStart = time.time(); _ = stObject.minimumInRange(left, right); stQueryTimes[i] += (time.time() - timeStart) * 1000000
-			timeStart = time.time(); _ = hoObject.minimumInRange(left, right); hoQueryTimes[i] += (time.time() - timeStart) * 1000000
-			timeStart = time.time(); _ = htObject.minimumInRange(left, right); htQueryTimes[i] += (time.time() - timeStart) * 1000000
-			timeStart = time.time(); _ = hhObject.minimumInRange(left, right); hhQueryTimes[i] += (time.time() - timeStart) * 1000000
-		npQueryTimes[i] /= numExperiment
-		fpQueryTimes[i] /= numExperiment
-		bdQueryTimes[i] /= numExperiment
-		stQueryTimes[i] /= numExperiment
-		hoQueryTimes[i] /= numExperiment
-		htQueryTimes[i] /= numExperiment
-		hhQueryTimes[i] /= numExperiment
-	plt.plot(Ns, npPreprocessTimes, label = 'No Preprocessing')
-	plt.plot(Ns, fpPreprocessTimes, label = 'Full Preprocessing')
-	plt.plot(Ns, bdPreprocessTimes, label = 'Block Decomposition')
-	plt.plot(Ns, stPreprocessTimes, label = 'Sparse Table')
-	plt.plot(Ns, hoPreprocessTimes, label = 'Hybrid One')
-	plt.plot(Ns, htPreprocessTimes, label = 'Hybrid Two')
-	plt.plot(Ns, hhPreprocessTimes, label = 'Hybrid Three')
-	plt.ylim([0, 2000])
-	plt.xlabel('N')
-	plt.ylabel('Preprocess time(ms/1000)')
-	plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
-	plt.subplots_adjust(right = 0.7)
-	plt.savefig('Preprocessing')
-	plt.plot(Ns, npQueryTimes, label = 'No Preprocessing')
-	plt.plot(Ns, fpQueryTimes, label = 'Full Preprocessing')
-	plt.plot(Ns, bdQueryTimes, label = 'Block Decomposition')
-	plt.plot(Ns, stQueryTimes, label = 'Sparse Table')
-	plt.plot(Ns, hoQueryTimes, label = 'Hybrid One')
-	plt.plot(Ns, htQueryTimes, label = 'Hybrid Two')
-	plt.plot(Ns, hhQueryTimes, label = 'Hybrid Three')
-	plt.ylim([0, 10])
-	plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
-	plt.subplots_adjust(right = 0.7)
-	plt.savefig('Query')
+#Visualize the amortized preprocessing time and query time
+maxN = 10000
+numExperiment = 10
+minNum = 0
+maxNum = 20
+Ns = list(map(lambda k: 2 ** k, range(int(math.log2(maxN)))))
+npPreprocessTimes = np.zeros_like(Ns)
+fpPreprocessTimes = np.zeros_like(Ns)
+bdPreprocessTimes = np.zeros_like(Ns)
+stPreprocessTimes = np.zeros_like(Ns)
+hoPreprocessTimes = np.zeros_like(Ns)
+htPreprocessTimes = np.zeros_like(Ns)
+hhPreprocessTimes = np.zeros_like(Ns)
+npQueryTimes = np.zeros_like(Ns)
+fpQueryTimes = np.zeros_like(Ns)
+bdQueryTimes = np.zeros_like(Ns)
+stQueryTimes = np.zeros_like(Ns)
+hoQueryTimes = np.zeros_like(Ns)
+htQueryTimes = np.zeros_like(Ns)
+hhQueryTimes = np.zeros_like(Ns)
+for i, N in enumerate(Ns):
+	arr = [random.randint(minNum, maxNum) for _ in range(N)]
+	# Compute the runtimes for no preprocessing
+	timeStart = time.time()
+	npObject = noPreprocessing(arr)
+	npPreprocessTimes[i] = (time.time() - timeStart) * 1000000
+	timeStart = time.time(); fpObject = fullPreprocessing(arr); fpPreprocessTimes[i] = (time.time() - timeStart) * 1000000
+	timeStart = time.time(); bdObject = blockDecomposition(arr); bdPreprocessTimes[i] = (time.time() - timeStart) * 1000000
+	timeStart = time.time(); stObject = sparseTable(arr); stPreprocessTimes[i] = (time.time() - timeStart) * 1000000
+	timeStart = time.time(); hoObject = hybridOne(arr); hoPreprocessTimes[i] = (time.time() - timeStart) * 1000000
+	timeStart = time.time(); htObject = hybridTwo(arr); htPreprocessTimes[i] = (time.time() - timeStart) * 1000000
+	timeStart = time.time(); hhObject = hybridThree(arr); hhPreprocessTimes[i] = (time.time() - timeStart) * 1000000
+	for experiment in range(numExperiment):
+		left = random.randint(0, N - 1)
+		right = random.randint(0, N - 1)
+		left, right = min(left, right), max(left, right)
+		timeStart = time.time(); _ = npObject.minimumInRange(left, right); npQueryTimes[i] += (time.time() - timeStart) * 1000000
+		timeStart = time.time(); _ = fpObject.minimumInRange(left, right); fpQueryTimes[i] += (time.time() - timeStart) * 1000000
+		timeStart = time.time(); _ = bdObject.minimumInRange(left, right); bdQueryTimes[i] += (time.time() - timeStart) * 1000000
+		timeStart = time.time(); _ = stObject.minimumInRange(left, right); stQueryTimes[i] += (time.time() - timeStart) * 1000000
+		timeStart = time.time(); _ = hoObject.minimumInRange(left, right); hoQueryTimes[i] += (time.time() - timeStart) * 1000000
+		timeStart = time.time(); _ = htObject.minimumInRange(left, right); htQueryTimes[i] += (time.time() - timeStart) * 1000000
+		timeStart = time.time(); _ = hhObject.minimumInRange(left, right); hhQueryTimes[i] += (time.time() - timeStart) * 1000000
+	npQueryTimes[i] /= numExperiment
+	fpQueryTimes[i] /= numExperiment
+	bdQueryTimes[i] /= numExperiment
+	stQueryTimes[i] /= numExperiment
+	hoQueryTimes[i] /= numExperiment
+	htQueryTimes[i] /= numExperiment
+	hhQueryTimes[i] /= numExperiment
+ax1 = plt.subplot(211)
+ax1.plot(Ns, npPreprocessTimes, label = 'No Preprocessing')
+ax1.plot(Ns, bdPreprocessTimes, label = 'Block Decomposition')
+ax1.plot(Ns, hoPreprocessTimes, label = 'Hybrid One')
+ax1.plot(Ns, hhPreprocessTimes, label = 'Hybrid Three')
+ax1.plot(Ns, htPreprocessTimes, label = 'Hybrid Two')
+ax1.plot(Ns, stPreprocessTimes, label = 'Sparse Table')
+ax1.plot(Ns, fpPreprocessTimes, label = 'Full Preprocessing')
+ax1.set_ylim([0, 2000])
+ax1.set_xlabel('N')
+ax1.set_ylabel('Preprocess time(ms/1000)')
+ax1.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+plt.subplots_adjust(right = 0.7)
+ax2 = plt.subplot(212)
+ax2.plot(Ns, npQueryTimes, label = 'No Preprocessing')
+ax2.plot(Ns, bdQueryTimes, label = 'Block Decomposition')
+ax2.plot(Ns, hoQueryTimes, label = 'Hybrid One')
+ax2.plot(Ns, hhQueryTimes, label = 'Hybrid Three')
+ax2.plot(Ns, htQueryTimes, label = 'Hybrid Two')
+ax2.plot(Ns, stQueryTimes, label = 'Sparse Table')
+ax2.plot(Ns, fpQueryTimes, label = 'Full Preprocessing')
+ax2.set_ylim([0, 10])
+ax2.set_xlabel('N')
+ax2.set_ylabel('Amortized Query time(ms/1000)')
+ax2.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+plt.subplots_adjust(right = 0.7)
+plt.savefig('rangeMinimumQuery')
