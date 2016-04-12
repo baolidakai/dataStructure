@@ -1,0 +1,7 @@
+All of the files you'll need to edit are in the rmq/ subdirectory.
+
+The oursolution/ directory contains a compiled reference solution of the sparse
+table RMQ data structure. It's used by the RMQDriver class. You shouldn't need
+to use this class anywhere.
+
+Good luck!
